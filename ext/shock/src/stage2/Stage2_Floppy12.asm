@@ -25,8 +25,8 @@
 ; DAMAGE
 ;========================================================================================
 ; Date Created:         03/04/2013 Adrian Collado
-; Date Edited:          03/04/2013 Adrian Collado
-; Date Committed:       03/04/2013 Adrian Collado
+; Date Edited:          03/05/2013 Adrian Collado
+; Date Committed:       03/05/2013 Adrian Collado
 ;========================================================================================
 ; Authors:
 ;     Adrian Collado
@@ -34,3 +34,43 @@
 ;       Github:  https://github.com/ChosenOreo/
 ;       Email:   acollado@citlink.net
 ;========================================================================================
+BITS 16
+ORG 0x7C00
+
+CPU 8086
+
+Entry:
+    JMP Main
+    
+;========================================================================================
+; Includes
+;========================================================================================
+%include "cpu/gdt.asm"
+%include "cpu/cpuid.asm"
+%include "cpu/cpusetting.asm"
+%include "mem/idt.asm"
+;========================================================================================
+; Data
+;========================================================================================
+Messages:
+    .NoCPU64:       DB  "This processor is not an x86-64 based processor. \
+                        Booting cannot continue!", 0x0A, 0x0D, 0x00
+;========================================================================================
+; Main
+;========================================================================================
+Main:
+    ; First, we are going to determine whether we have a 64-bit processor or not. We
+    ; aren't going to mess around with 32-bit at all because the booted operating
+    ; has to be 64 bits.
+    CALL CheckCPU64
+    
+    ; If the computer does not have 64-bit capabilities, then we are going to stop
+    ; loading and issue an error message to the user.
+    PUSH AX
+    MOV AX, 0x0001
+    JC Abort
+    POP AX
+    
+    ; If we reached this point, we have a 64-bit capable processor, so we will switch to
+    ; 64-bit mode.
+    CALL Switch64

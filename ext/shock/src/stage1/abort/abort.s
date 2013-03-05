@@ -24,7 +24,7 @@
 ; ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 ; DAMAGE
 ;========================================================================================
-; Date Created:         03/03/2013 Adrian Collado
+; Date Created:         03/04/2013 Adrian Collado
 ; Date Edited:          03/04/2013 Adrian Collado
 ; Date Committed:       03/04/2013 Adrian Collado
 ;========================================================================================
@@ -34,62 +34,19 @@
 ;       Github:  https://github.com/ChosenOreo/
 ;       Email:   acollado@citlink.net
 ;========================================================================================
-BITS 16
-ORG 0x7C00
+%ifndef _SHOCK_ABORT_ABORT_S_
+%define _SHOCK_ABORT_ABORT_S_
 
-CPU 8086
-
-Entry:
-        JMP Main
+; Abort - Halts booting
+Abort:
+        .Advanced:
+        .Standard:
+        .Unknown:
+                MOV SI, Messages.AbortString
+                CALL VideoDisplayString
         
-;========================================================================================
-; Includes
-;========================================================================================
-%include "disk/fat12block.asm"
-%include "disk/floppy.asm"
-%include "video/videoinit.asm"
-%include "video/display.asm"
-%include "abort/abort.asm"
-
-;========================================================================================
-; Data
-;========================================================================================
-Messages:
-        .AbortString:           DB      "[Abort]", 0x0A, 0x0D, 0x00
-        .VideoTestString:       DB      "[Init] Video Initialized!", 0x0A, 0x0D, 0x00
-        
-;========================================================================================
-; Main
-;========================================================================================
-        CLI
-        XOR AX, AX
-        MOV DS, AX
-        MOV ES, AX
-        MOV SS, AX
-        MOV SP, 0xFFFF
-        STI
-        
-        JMP 0x0000:Main.Flush
-        .Flush:
-        
-        MOV [ExtFATBlock.DriveNumber], DL
-        
-        CALL InitVideoDefault
-        
-        MOV SI, Messages.VideoTestString
-        CALL VideoDisplayString
-        
-        MOV CX, 0x0005
-        MOV AX, 0x0001
-        MOV BX, 0x0000
-        MOV ES, BX
-        MOV BX, 0x0500
-        CALL ReadSectors
-        
-        JC Abort
-        
-        JMP 0x0000:0x0500
-        
-TIMES 510 - ($-$$) DB 0
-
-DW 0xAA55
+        .Stop:
+                HLT
+                JMP .Stop
+                
+%endif ;_SHOCK_ABORT_ABORT_S_
